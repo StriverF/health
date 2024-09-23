@@ -157,6 +157,12 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
     let HEADACHE_SEVERE = "HEADACHE_SEVERE"
     let ELECTROCARDIOGRAM = "ELECTROCARDIOGRAM"
     let NUTRITION = "NUTRITION"
+    let WORKOUT_ROUTE = "WORKOUT_ROUTE"
+    let CYCLING_CADENCE = "CYCLING_CADENCE"
+    let CYCLING_SPEED = "CYCLING_SPEED"
+    let RUNNING_POWER = "RUNNING_POWER"
+    let RUNNING_SPEED = "RUNNING_SPEED"
+
     let BIRTH_DATE = "BIRTH_DATE"
     let GENDER = "GENDER"
     let BLOOD_TYPE = "BLOOD_TYPE"
@@ -775,6 +781,14 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
         let dateTo = Date(timeIntervalSince1970: endTime.doubleValue / 1000)
         
         let dataType = dataTypeLookUp(key: dataTypeKey)
+
+        // 检查是否为 WORKOUT_ROUTE 类型
+        if dataTypeKey == WORKOUT_ROUTE {
+            // 查询运动路径的逻辑
+            queryWorkoutRoute(startDate: dateFrom, endDate: dateTo, result: result)
+         return
+        }
+
         var unit: HKUnit?
         if let dataUnitKey = dataUnitKey {
             unit = unitDict[dataUnitKey]
@@ -1082,6 +1096,11 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
         let dateFrom = Date(timeIntervalSince1970: startDate.doubleValue / 1000)
         let dateTo = Date(timeIntervalSince1970: endDate.doubleValue / 1000)
         
+        if dataTypeKey == WORKOUT_ROUTE {
+            queryWorkoutRoute(startDate: dateFrom, endDate: dateTo, intervalInSecond: intervalInSecond, result: result)
+            return
+        }
+
         let quantityType: HKQuantityType! = dataQuantityTypesDict[dataTypeKey]
         var predicate = HKQuery.predicateForSamples(withStart: dateFrom, end: dateTo, options: [])
         if (!includeManualEntry) {
@@ -1151,7 +1170,80 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
         }
         HKHealthStore().execute(query)
     }
-    
+
+    func queryWorkoutRoute(startDate: Date, endDate: Date, intervalInSecond: Int? = nil, result: @escaping FlutterResult) {
+        let workoutRouteType = HKSeriesType.workoutRoute()
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let routeQuery = HKSampleQuery(sampleType: workoutRouteType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { (query, samples, error) in
+            guard let workoutRoutes = samples as? [HKWorkoutRoute], error == nil else {
+                result(FlutterError(code: "query_failed", message: "Failed to query workout route data", details: error?.localizedDescription))
+                return
+            }
+
+            var allRouteData: [[String: Any]] = []
+            let group = DispatchGroup()
+
+            for workoutRoute in workoutRoutes {
+                group.enter()
+                self.processWorkoutRoute(route: workoutRoute, intervalInSecond: intervalInSecond) { processedRoute in
+                    allRouteData.append(contentsOf: processedRoute)
+                    group.leave()
+                }
+            }
+
+            group.notify(queue: .main) {
+                result(allRouteData)
+            }
+        }
+        HKHealthStore().execute(routeQuery)
+    }
+
+    func processWorkoutRoute(route: HKWorkoutRoute, intervalInSecond: Int?, completion: @escaping ([[String: Any]]) -> Void) {
+        var routeData: [[String: Any]] = []
+        var lastTimestamp: Date? = nil
+        var groupedLocations: [[String: Any]] = []
+
+        let routeQuery = HKWorkoutRouteQuery(route: route) { (query, locationsOrNil, done, errorOrNil) in
+            guard let locations = locationsOrNil else {
+                return
+            }
+
+            for location in locations {
+                let locationData: [String: Any] = [
+                    "latitude": location.coordinate.latitude,
+                    "longitude": location.coordinate.longitude,
+                    "timestamp": location.timestamp.timeIntervalSince1970
+                ]
+
+                if let interval = intervalInSecond {
+                    // 如果传入了 intervalInSecond，则按时间间隔进行分组
+                    if let lastTime = lastTimestamp {
+                        let timeDiff = location.timestamp.timeIntervalSince(lastTime)
+                        if timeDiff >= Double(interval) {
+                            routeData.append(contentsOf: groupedLocations)
+                            groupedLocations = []  // 开始新的分组
+                        }
+                    }
+                    lastTimestamp = location.timestamp
+                    groupedLocations.append(locationData)
+                } else {
+                    // 如果没有传入 intervalInSecond，则直接记录位置数据
+                    routeData.append(locationData)
+                }
+            }
+
+            if done {
+                // 处理完所有位置数据后，返回结果
+                if !groupedLocations.isEmpty {
+                    routeData.append(contentsOf: groupedLocations)
+                }
+                completion(routeData)
+            }
+        }
+        HKHealthStore().execute(routeQuery)
+    }
+
     func getTotalStepsInInterval(call: FlutterMethodCall, result: @escaping FlutterResult) {
         let arguments = call.arguments as? NSDictionary
         let startTime = (arguments?["startTime"] as? NSNumber) ?? 0
@@ -1500,6 +1592,7 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
         
         // Set up iOS 11 specific types (ordinary health data quantity types)
         if #available(iOS 11.0, *) {
+            dataTypesDict[WORKOUT_ROUTE] = HKSeriesType.workoutRoute()
             dataQuantityTypesDict[ACTIVE_ENERGY_BURNED] = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!
             dataQuantityTypesDict[BASAL_ENERGY_BURNED] = HKQuantityType.quantityType(forIdentifier: .basalEnergyBurned)!
             dataQuantityTypesDict[BLOOD_GLUCOSE] = HKQuantityType.quantityType(forIdentifier: .bloodGlucose)!
@@ -1565,6 +1658,8 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
             dataQuantityTypesDict[DISTANCE_SWIMMING] = HKQuantityType.quantityType(forIdentifier: .distanceSwimming)!
             dataQuantityTypesDict[DISTANCE_CYCLING] = HKQuantityType.quantityType(forIdentifier: .distanceCycling)!
             dataQuantityTypesDict[FLIGHTS_CLIMBED] = HKQuantityType.quantityType(forIdentifier: .flightsClimbed)!
+
+            dataQuantityTypesDict[FLIGHTS_CLIMBED] = HKQuantityType.quantityType(forIdentifier: .flightsClimbed)!
             
             healthDataQuantityTypes = Array(dataQuantityTypesDict.values)
         }
@@ -1611,7 +1706,19 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
 
         if #available(iOS 16.0, *) {
             dataTypesDict[ATRIAL_FIBRILLATION_BURDEN] = HKQuantityType.quantityType(forIdentifier: .atrialFibrillationBurden)!
+            dataTypesDict["RUNNING_POWER"] = HKSampleType.quantityType(forIdentifier: .runningPower)
+            dataTypesDict["RUNNING_SPEED"] = HKSampleType.quantityType(forIdentifier: .runningSpeed)
         } 
+
+        if #available(iOS 17.0, *) {
+            dataTypesDict["CYCLING_CADENCE"] = HKSampleType.quantityType(forIdentifier: .cyclingCadence)
+            dataTypesDict["CYCLING_POWER"] = HKSampleType.quantityType(forIdentifier: .cyclingPower)
+            dataTypesDict["CYCLING_SPEED"] = HKSampleType.quantityType(forIdentifier: .cyclingSpeed)
+
+            dataQuantityTypesDict["CYCLING_CADENCE"] = HKQuantityType.quantityType(forIdentifier: .cyclingCadence)
+            dataQuantityTypesDict["CYCLING_POWER"] = HKQuantityType.quantityType(forIdentifier: .cyclingPower)
+            dataQuantityTypesDict["CYCLING_SPEED"] = HKQuantityType.quantityType(forIdentifier: .cyclingSpeed)
+        }
         
         // Concatenate heart events, headache and health data types (both may be empty)
         allDataTypes = Set(heartRateEventTypes + healthDataTypes)

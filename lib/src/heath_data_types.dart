@@ -90,6 +90,12 @@ enum HealthDataType {
   HEADACHE_SEVERE,
   HEADACHE_UNSPECIFIED,
   NUTRITION,
+  WORKOUT_ROUTE,
+  CYCLING_CADENCE,
+  CYCLING_POWER,
+  CYCLING_SPEED,
+  RUNNING_POWER,
+  RUNNING_SPEED,
   // HealthKit Characteristics
   GENDER,
   BIRTH_DATE,
@@ -202,6 +208,12 @@ const List<HealthDataType> dataTypeKeysIOS = [
   HealthDataType.HEADACHE_UNSPECIFIED,
   HealthDataType.ELECTROCARDIOGRAM,
   HealthDataType.NUTRITION,
+  HealthDataType.WORKOUT_ROUTE,
+  HealthDataType.CYCLING_CADENCE,
+  HealthDataType.CYCLING_POWER,
+  HealthDataType.CYCLING_SPEED,
+  HealthDataType.RUNNING_POWER,
+  HealthDataType.RUNNING_SPEED,
   HealthDataType.GENDER,
   HealthDataType.BIRTH_DATE,
   HealthDataType.BLOOD_TYPE,
@@ -582,8 +594,7 @@ enum InsulinDeliveryReason {
 }
 
 /// Extension to assign numbers to [ElectrocardiogramClassification]s
-extension ElectrocardiogramClassificationValue
-    on ElectrocardiogramClassification {
+extension ElectrocardiogramClassificationValue on ElectrocardiogramClassification {
   int get value => switch (this) {
         ElectrocardiogramClassification.NOT_SET => 0,
         ElectrocardiogramClassification.SINUS_RHYTHM => 1,
