@@ -160,6 +160,7 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
     let WORKOUT_ROUTE = "WORKOUT_ROUTE"
     let CYCLING_CADENCE = "CYCLING_CADENCE"
     let CYCLING_SPEED = "CYCLING_SPEED"
+    let CYCLING_POWER = "CYCLING_POWER"
     let RUNNING_POWER = "RUNNING_POWER"
     let RUNNING_SPEED = "RUNNING_SPEED"
 
@@ -205,6 +206,8 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
     let KILOCALORIE = "KILOCALORIE"
     let LARGE_CALORIE = "LARGE_CALORIE"
     let SMALL_CALORIE = "SMALL_CALORIE"
+    let WATT = "WATT"
+    let REVOLUTIONS_PER_MINUTE = "REVOLUTIONS_PER_MINUTE"
     let DEGREE_CELSIUS = "DEGREE_CELSIUS"
     let DEGREE_FAHRENHEIT = "DEGREE_FAHRENHEIT"
     let KELVIN = "KELVIN"
@@ -1376,6 +1379,14 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
         unitDict[KILOCALORIE] = HKUnit.kilocalorie()
         unitDict[LARGE_CALORIE] = HKUnit.largeCalorie()
         unitDict[SMALL_CALORIE] = HKUnit.smallCalorie()
+        // 在方法内检查iOS版本
+        if #available(iOS 16.0, *) {
+            unitDict[WATT] = HKUnit.watt()
+        } else {
+            // 如果系统版本低于iOS 16.0，使用默认单位或者抛出错误
+            unitDict[WATT] = HKUnit.init(from: "count")
+        }
+        unitDict[REVOLUTIONS_PER_MINUTE] = HKUnit.count().unitDivided(by: HKUnit.minute())
         unitDict[DEGREE_CELSIUS] = HKUnit.degreeCelsius()
         unitDict[DEGREE_FAHRENHEIT] = HKUnit.degreeFahrenheit()
         unitDict[KELVIN] = HKUnit.kelvin()
@@ -1706,18 +1717,18 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
 
         if #available(iOS 16.0, *) {
             dataTypesDict[ATRIAL_FIBRILLATION_BURDEN] = HKQuantityType.quantityType(forIdentifier: .atrialFibrillationBurden)!
-            dataTypesDict["RUNNING_POWER"] = HKSampleType.quantityType(forIdentifier: .runningPower)
-            dataTypesDict["RUNNING_SPEED"] = HKSampleType.quantityType(forIdentifier: .runningSpeed)
+            dataTypesDict[RUNNING_POWER] = HKSampleType.quantityType(forIdentifier: .runningPower)
+            dataTypesDict[RUNNING_SPEED] = HKSampleType.quantityType(forIdentifier: .runningSpeed)
         } 
 
         if #available(iOS 17.0, *) {
-            dataTypesDict["CYCLING_CADENCE"] = HKSampleType.quantityType(forIdentifier: .cyclingCadence)
-            dataTypesDict["CYCLING_POWER"] = HKSampleType.quantityType(forIdentifier: .cyclingPower)
-            dataTypesDict["CYCLING_SPEED"] = HKSampleType.quantityType(forIdentifier: .cyclingSpeed)
+            dataTypesDict[CYCLING_CADENCE] = HKSampleType.quantityType(forIdentifier: .cyclingCadence)
+            dataTypesDict[CYCLING_POWER] = HKSampleType.quantityType(forIdentifier: .cyclingPower)
+            dataTypesDict[CYCLING_SPEED] = HKSampleType.quantityType(forIdentifier: .cyclingSpeed)
 
-            dataQuantityTypesDict["CYCLING_CADENCE"] = HKQuantityType.quantityType(forIdentifier: .cyclingCadence)
-            dataQuantityTypesDict["CYCLING_POWER"] = HKQuantityType.quantityType(forIdentifier: .cyclingPower)
-            dataQuantityTypesDict["CYCLING_SPEED"] = HKQuantityType.quantityType(forIdentifier: .cyclingSpeed)
+            dataQuantityTypesDict[CYCLING_CADENCE] = HKQuantityType.quantityType(forIdentifier: .cyclingCadence)
+            dataQuantityTypesDict[CYCLING_POWER] = HKQuantityType.quantityType(forIdentifier: .cyclingPower)
+            dataQuantityTypesDict[CYCLING_SPEED] = HKQuantityType.quantityType(forIdentifier: .cyclingSpeed)
         }
         
         // Concatenate heart events, headache and health data types (both may be empty)

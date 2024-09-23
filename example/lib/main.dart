@@ -366,6 +366,48 @@ class _HealthAppState extends State<HealthApp> {
     }
   }
 
+  Future<void> fetchCyclingData() async {
+    int? steps;
+    final Health health = Health();
+
+    // get steps for today (i.e., since midnight)
+    final now = DateTime.fromMillisecondsSinceEpoch(1726977223971);
+    final midnight = DateTime.fromMillisecondsSinceEpoch(1726971598098);
+
+    bool stepsPermission =
+        await health.hasPermissions([HealthDataType.CYCLING_POWER, HealthDataType.CYCLING_CADENCE, HealthDataType.CYCLING_SPEED]) ?? false;
+    if (!stepsPermission) {
+      stepsPermission =
+          await health.requestAuthorization([HealthDataType.CYCLING_POWER, HealthDataType.CYCLING_CADENCE, HealthDataType.CYCLING_SPEED]);
+    }
+
+    if (stepsPermission) {
+      List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
+        startTime: midnight,
+        endTime: now,
+        types: [HealthDataType.CYCLING_POWER, HealthDataType.CYCLING_CADENCE, HealthDataType.CYCLING_SPEED],
+        // interval: 1000,
+      );
+      List<HealthDataPoint> healthData100 = healthData.sublist(20000, 20500);
+      print('healthData $healthData100');
+      // try {
+      //   steps = await Health().getTotalStepsInInterval(midnight, now, includeManualEntry: !recordingMethodsToFilter.contains(RecordingMethod.manual));
+      // } catch (error) {
+      //   debugPrint("Exception in getTotalStepsInInterval: $error");
+      // }
+
+      // debugPrint('Total number of steps: $steps');
+
+      // setState(() {
+      //   _nofSteps = (steps == null) ? 0 : steps;
+      //   _state = (steps == null) ? AppState.NO_DATA : AppState.STEPS_READY;
+      // });
+    } else {
+      debugPrint("Authorization not granted - error in authorization");
+      setState(() => _state = AppState.DATA_NOT_FETCHED);
+    }
+  }
+
   /// Revoke access to health data. Note, this only has an effect on Android.
   Future<void> revokeAccess() async {
     setState(() => _state = AppState.PERMISSIONS_REVOKING);
@@ -423,6 +465,10 @@ class _HealthAppState extends State<HealthApp> {
                   TextButton(
                       onPressed: fetchStepData,
                       child: Text("Fetch Step Data", style: TextStyle(color: Colors.white)),
+                      style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.blue))),
+                  TextButton(
+                      onPressed: fetchCyclingData,
+                      child: Text("Fetch Cycling Data", style: TextStyle(color: Colors.white)),
                       style: ButtonStyle(backgroundColor: MaterialStatePropertyAll(Colors.blue))),
                   TextButton(
                       onPressed: revokeAccess,

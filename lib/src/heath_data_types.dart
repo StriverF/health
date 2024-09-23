@@ -363,6 +363,14 @@ const Map<HealthDataType, HealthDataUnit> dataTypeToUnit = {
   HealthDataType.ELECTROCARDIOGRAM: HealthDataUnit.VOLT,
 
   HealthDataType.NUTRITION: HealthDataUnit.NO_UNIT,
+
+  HealthDataType.WORKOUT_ROUTE: HealthDataUnit.NO_UNIT,
+  HealthDataType.CYCLING_CADENCE: HealthDataUnit.REVOLUTIONS_PER_MINUTE,
+  HealthDataType.CYCLING_POWER: HealthDataUnit.WATT,
+  HealthDataType.CYCLING_SPEED: HealthDataUnit.METER,
+  HealthDataType.RUNNING_POWER: HealthDataUnit.WATT,
+  HealthDataType.RUNNING_SPEED: HealthDataUnit.METER,
+
   HealthDataType.MENSTRUATION_FLOW: HealthDataUnit.NO_UNIT,
 
   // Health Connect
@@ -423,6 +431,8 @@ enum HealthDataUnit {
   LARGE_CALORIE,
   SMALL_CALORIE,
 
+  WATT,
+
   // Temperature units
   DEGREE_CELSIUS,
   DEGREE_FAHRENHEIT,
@@ -446,6 +456,8 @@ enum HealthDataUnit {
   // Scalar units
   COUNT,
   PERCENT,
+
+  REVOLUTIONS_PER_MINUTE,
 
   // Other units
   BEATS_PER_MINUTE,
