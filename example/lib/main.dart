@@ -374,21 +374,36 @@ class _HealthAppState extends State<HealthApp> {
     final now = DateTime.fromMillisecondsSinceEpoch(1726977223971);
     final midnight = DateTime.fromMillisecondsSinceEpoch(1726971598098);
 
-    bool stepsPermission =
-        await health.hasPermissions([HealthDataType.CYCLING_POWER, HealthDataType.CYCLING_CADENCE, HealthDataType.CYCLING_SPEED]) ?? false;
+    bool stepsPermission = await health.hasPermissions([
+          HealthDataType.CYCLING_POWER,
+          HealthDataType.CYCLING_CADENCE,
+          HealthDataType.CYCLING_SPEED,
+          HealthDataType.WORKOUT,
+          HealthDataType.WORKOUT_ROUTE
+        ]) ??
+        false;
     if (!stepsPermission) {
-      stepsPermission =
-          await health.requestAuthorization([HealthDataType.CYCLING_POWER, HealthDataType.CYCLING_CADENCE, HealthDataType.CYCLING_SPEED]);
+      stepsPermission = await health.requestAuthorization([
+        HealthDataType.CYCLING_POWER,
+        HealthDataType.CYCLING_CADENCE,
+        HealthDataType.CYCLING_SPEED,
+        HealthDataType.WORKOUT,
+        HealthDataType.WORKOUT_ROUTE
+      ]);
     }
 
     if (stepsPermission) {
       List<HealthDataPoint> healthData = await health.getHealthDataFromTypes(
         startTime: midnight,
         endTime: now,
-        types: [HealthDataType.CYCLING_POWER, HealthDataType.CYCLING_CADENCE, HealthDataType.CYCLING_SPEED],
+        types: [
+          HealthDataType.WORKOUT_ROUTE,
+          HealthDataType.CYCLING_POWER,
+          HealthDataType.CYCLING_CADENCE,
+        ],
         // interval: 1000,
       );
-      List<HealthDataPoint> healthData100 = healthData.sublist(20000, 20500);
+      List<HealthDataPoint> healthData100 = healthData.sublist(100, 500);
       print('healthData $healthData100');
       // try {
       //   steps = await Health().getTotalStepsInInterval(midnight, now, includeManualEntry: !recordingMethodsToFilter.contains(RecordingMethod.manual));

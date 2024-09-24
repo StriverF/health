@@ -1175,22 +1175,27 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
     }
 
     func queryWorkoutRoute(startDate: Date, endDate: Date, intervalInSecond: Int? = nil, result: @escaping FlutterResult) {
-        let workoutRouteType = HKSeriesType.workoutRoute()
-
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
-        let routeQuery = HKSampleQuery(sampleType: workoutRouteType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { (query, samples, error) in
-            guard let workoutRoutes = samples as? [HKWorkoutRoute], error == nil else {
-                result(FlutterError(code: "query_failed", message: "Failed to query workout route data", details: error?.localizedDescription))
+        // 首先查询户外骑行相关的体能训练记录 (HKWorkout)
+        let workoutPredicate = HKQuery.predicateForWorkouts(with: .cycling)
+        let datePredicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [workoutPredicate, datePredicate])
+        
+        let workoutQuery = HKSampleQuery(sampleType: HKObjectType.workoutType(), predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { (query, samples, error) in
+            guard let workouts = samples as? [HKWorkout], error == nil else {
+                result(FlutterError(code: "query_failed", message: "Failed to query workouts", details: error?.localizedDescription))
                 return
             }
 
-            var allRouteData: [[String: Any]] = []
+            // 遍历所有户外骑行相关的体能训练
             let group = DispatchGroup()
+            var allRouteData: [[String: Any]] = []
 
-            for workoutRoute in workoutRoutes {
+            for workout in workouts {
                 group.enter()
-                self.processWorkoutRoute(route: workoutRoute, intervalInSecond: intervalInSecond) { processedRoute in
-                    allRouteData.append(contentsOf: processedRoute)
+
+                // 根据每一个体能训练查询相关的体能训练路线数据
+                self.queryWorkoutRouteForWorkout(workout, intervalInSecond: intervalInSecond) { routeData in
+                    allRouteData.append(contentsOf: routeData)
                     group.leave()
                 }
             }
@@ -1199,10 +1204,41 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
                 result(allRouteData)
             }
         }
+
+        HKHealthStore().execute(workoutQuery)
+    }
+
+    func queryWorkoutRouteForWorkout(_ workout: HKWorkout, intervalInSecond: Int?, completion: @escaping ([[String: Any]]) -> Void) {
+        let workoutRouteType = HKSeriesType.workoutRoute()
+        let predicate = HKQuery.predicateForObjects(from: workout)
+
+        let routeQuery = HKSampleQuery(sampleType: workoutRouteType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { (query, samples, error) in
+            guard let workoutRoutes = samples as? [HKWorkoutRoute], error == nil else {
+                completion([])
+                return
+            }
+
+            var allRouteData: [[String: Any]] = []
+            let group = DispatchGroup()
+
+            for workoutRoute in workoutRoutes {
+                group.enter()
+
+                self.processWorkoutRoute(workout: workout, route: workoutRoute, intervalInSecond: intervalInSecond) { processedRoute in
+                    allRouteData.append(contentsOf: processedRoute)
+                    group.leave()
+                }
+            }
+
+            group.notify(queue: .main) {
+                completion(allRouteData)
+            }
+        }
+
         HKHealthStore().execute(routeQuery)
     }
 
-    func processWorkoutRoute(route: HKWorkoutRoute, intervalInSecond: Int?, completion: @escaping ([[String: Any]]) -> Void) {
+    func processWorkoutRoute(workout: HKWorkout, route: HKWorkoutRoute, intervalInSecond: Int?, completion: @escaping ([[String: Any]]) -> Void) {
         var routeData: [[String: Any]] = []
         var lastTimestamp: Date? = nil
         var groupedLocations: [[String: Any]] = []
@@ -1213,10 +1249,23 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
             }
 
             for location in locations {
+                let courseAccuracy: Double
+                if #available(iOS 13.4, *) {
+                    courseAccuracy = location.courseAccuracy
+                } else {
+                    courseAccuracy = 0
+                }
                 let locationData: [String: Any] = [
                     "latitude": location.coordinate.latitude,
                     "longitude": location.coordinate.longitude,
-                    "timestamp": location.timestamp.timeIntervalSince1970
+                    "altitude": location.altitude, // 海拔
+                    "horizontalAccuracy": location.horizontalAccuracy, // 水平精度
+                    "verticalAccuracy": location.verticalAccuracy, // 垂直精度
+                    "speed": location.speed, // 速度
+                    "speedAccuracy": location.speedAccuracy, // 速度精度
+                    "course": location.course, // 航向
+                    "courseAccuracy": courseAccuracy, // 航向精度
+                    "timestamp": Int(location.timestamp.timeIntervalSince1970 * 1000) // 时间戳
                 ]
 
                 if let interval = intervalInSecond {
@@ -1232,7 +1281,17 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
                     groupedLocations.append(locationData)
                 } else {
                     // 如果没有传入 intervalInSecond，则直接记录位置数据
-                    routeData.append(locationData)
+                    routeData.append([
+                        "uuid": "\(workout.uuid)",
+                        "value": locationData,  // 将 locationData 作为 value 返回
+                        "date_from": Int(location.timestamp.timeIntervalSince1970 * 1000),
+                        "date_to": Int(location.timestamp.timeIntervalSince1970 * 1000 + 1000),
+                        "source_id": workout.sourceRevision.source.bundleIdentifier,  // 示例值，您可以根据需求更改
+                        "source_name": workout.sourceRevision.source.name,  // 示例值，您可以根据需求更改
+                        "recording_method":(workout.metadata?[HKMetadataKeyWasUserEntered] as? Bool == true)
+                        ? RecordingMethod.manual.rawValue
+                        : RecordingMethod.automatic.rawValue,
+                    ])
                 }
             }
 
@@ -1244,6 +1303,7 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
                 completion(routeData)
             }
         }
+
         HKHealthStore().execute(routeQuery)
     }
 

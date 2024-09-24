@@ -92,14 +92,11 @@ class HealthDataPoint {
   }
 
   /// Converts dateTo - dateFrom to minutes.
-  NumericHealthValue _convertMinutes() => NumericHealthValue(
-      numericValue:
-          (dateTo.millisecondsSinceEpoch - dateFrom.millisecondsSinceEpoch) /
-              (1000 * 60));
+  NumericHealthValue _convertMinutes() =>
+      NumericHealthValue(numericValue: (dateTo.millisecondsSinceEpoch - dateFrom.millisecondsSinceEpoch) / (1000 * 60));
 
   /// Create a [HealthDataPoint] from json.
-  factory HealthDataPoint.fromJson(Map<String, dynamic> json) =>
-      _$HealthDataPointFromJson(json);
+  factory HealthDataPoint.fromJson(Map<String, dynamic> json) => _$HealthDataPointFromJson(json);
 
   /// Convert this [HealthDataPoint] to json.
   Map<String, dynamic> toJson() => _$HealthDataPointToJson(this);
@@ -111,30 +108,21 @@ class HealthDataPoint {
   ) {
     // Handling different [HealthValue] types
     HealthValue value = switch (dataType) {
-      HealthDataType.AUDIOGRAM =>
-        AudiogramHealthValue.fromHealthDataPoint(dataPoint),
-      HealthDataType.WORKOUT =>
-        WorkoutHealthValue.fromHealthDataPoint(dataPoint),
-      HealthDataType.ELECTROCARDIOGRAM =>
-        ElectrocardiogramHealthValue.fromHealthDataPoint(dataPoint),
-      HealthDataType.NUTRITION =>
-        NutritionHealthValue.fromHealthDataPoint(dataPoint),
-      HealthDataType.INSULIN_DELIVERY =>
-        InsulinDeliveryHealthValue.fromHealthDataPoint(dataPoint),
-      HealthDataType.MENSTRUATION_FLOW =>
-        MenstruationFlowHealthValue.fromHealthDataPoint(dataPoint),
+      HealthDataType.AUDIOGRAM => AudiogramHealthValue.fromHealthDataPoint(dataPoint),
+      HealthDataType.WORKOUT => WorkoutHealthValue.fromHealthDataPoint(dataPoint),
+      HealthDataType.WORKOUT_ROUTE => WorkoutRouteHealthValue.fromHealthDataPoint(dataPoint['value']),
+      HealthDataType.ELECTROCARDIOGRAM => ElectrocardiogramHealthValue.fromHealthDataPoint(dataPoint),
+      HealthDataType.NUTRITION => NutritionHealthValue.fromHealthDataPoint(dataPoint),
+      HealthDataType.INSULIN_DELIVERY => InsulinDeliveryHealthValue.fromHealthDataPoint(dataPoint),
+      HealthDataType.MENSTRUATION_FLOW => MenstruationFlowHealthValue.fromHealthDataPoint(dataPoint),
       _ => NumericHealthValue.fromHealthDataPoint(dataPoint),
     };
 
-    final DateTime from =
-        DateTime.fromMillisecondsSinceEpoch(dataPoint['date_from'] as int);
-    final DateTime to =
-        DateTime.fromMillisecondsSinceEpoch(dataPoint['date_to'] as int);
+    final DateTime from = DateTime.fromMillisecondsSinceEpoch(dataPoint['date_from'] as int);
+    final DateTime to = DateTime.fromMillisecondsSinceEpoch(dataPoint['date_to'] as int);
     final String sourceId = dataPoint["source_id"] as String;
     final String sourceName = dataPoint["source_name"] as String;
-    final Map<String, dynamic>? metadata = dataPoint["metadata"] == null
-        ? null
-        : Map<String, dynamic>.from(dataPoint['metadata'] as Map);
+    final Map<String, dynamic>? metadata = dataPoint["metadata"] == null ? null : Map<String, dynamic>.from(dataPoint['metadata'] as Map);
     final unit = dataTypeToUnit[dataType] ?? HealthDataUnit.UNKNOWN_UNIT;
     final String? uuid = dataPoint["uuid"] as String?;
 
@@ -199,6 +187,5 @@ class HealthDataPoint {
       metadata == other.metadata;
 
   @override
-  int get hashCode => Object.hash(uuid, value, unit, dateFrom, dateTo, type,
-      sourcePlatform, sourceDeviceId, sourceId, sourceName, metadata);
+  int get hashCode => Object.hash(uuid, value, unit, dateFrom, dateTo, type, sourcePlatform, sourceDeviceId, sourceId, sourceName, metadata);
 }
