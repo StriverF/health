@@ -259,6 +259,8 @@ class Health {
         sourceId: '',
         sourceName: '',
         recordingMethod: RecordingMethod.unknown,
+        productType: '',
+        osVersion: '',
       );
 
       bmiHealthPoints.add(x);

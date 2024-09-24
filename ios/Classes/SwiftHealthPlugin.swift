@@ -940,6 +940,7 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
             case let (samplesWorkout as [HKWorkout]) as Any:
                 
                 let dictionaries = samplesWorkout.map { sample -> NSDictionary in
+                    let osVersion = sample.sourceRevision.operatingSystemVersion
                     return [
                         "uuid": "\(sample.uuid)",
                         "workoutActivityType": workoutActivityTypeMap.first(where: {
@@ -948,6 +949,8 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
                         "totalEnergyBurned": sample.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()),
                         "totalEnergyBurnedUnit": "KILOCALORIE",
                         "totalDistance": sample.totalDistance?.doubleValue(for: HKUnit.meter()),
+                        "productType": sample.sourceRevision.productType ?? "Unknown Device",
+                        "osVersion": "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)",
                         "totalDistanceUnit": "METER",
                         "date_from": Int(sample.startDate.timeIntervalSince1970 * 1000),
                         "date_to": Int(sample.endDate.timeIntervalSince1970 * 1000),

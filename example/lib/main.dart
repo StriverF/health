@@ -397,13 +397,11 @@ class _HealthAppState extends State<HealthApp> {
         startTime: midnight,
         endTime: now,
         types: [
-          HealthDataType.WORKOUT_ROUTE,
-          HealthDataType.CYCLING_POWER,
-          HealthDataType.CYCLING_CADENCE,
+          HealthDataType.WORKOUT,
         ],
         // interval: 1000,
       );
-      List<HealthDataPoint> healthData100 = healthData.sublist(100, 500);
+      List<HealthDataPoint> healthData100 = healthData.sublist(1, 10);
       print('healthData $healthData100');
       // try {
       //   steps = await Health().getTotalStepsInInterval(midnight, now, includeManualEntry: !recordingMethodsToFilter.contains(RecordingMethod.manual));
