@@ -240,6 +240,7 @@ public class HealthPlugin: NSObject, FlutterPlugin {
         unitDict[HealthConstants.KILOCALORIE] = HKUnit.kilocalorie()
         unitDict[HealthConstants.LARGE_CALORIE] = HKUnit.largeCalorie()
         unitDict[HealthConstants.SMALL_CALORIE] = HKUnit.smallCalorie()
+        unitDict[HealthConstants.WATT] = HKUnit.watt()
         unitDict[HealthConstants.DEGREE_CELSIUS] = HKUnit.degreeCelsius()
         unitDict[HealthConstants.DEGREE_FAHRENHEIT] = HKUnit.degreeFahrenheit()
         unitDict[HealthConstants.KELVIN] = HKUnit.kelvin()
@@ -251,6 +252,7 @@ public class HealthPlugin: NSObject, FlutterPlugin {
         unitDict[HealthConstants.PERCENT] = HKUnit.percent()
         unitDict[HealthConstants.BEATS_PER_MINUTE] = HKUnit(from: "count/min")
         unitDict[HealthConstants.RESPIRATIONS_PER_MINUTE] = HKUnit(from: "count/min")
+        unitDict[HealthConstants.REVOLUTIONS_PER_MINUTE] = HKUnit(from: "count/min")
         unitDict[HealthConstants.MILLIGRAM_PER_DECILITER] = HKUnit(from: "mg/dL")
         unitDict[HealthConstants.METER_PER_SECOND] = HKUnit(from: "m/s")
         unitDict[HealthConstants.UNKNOWN_UNIT] = HKUnit(from: "")
@@ -329,6 +331,10 @@ public class HealthPlugin: NSObject, FlutterPlugin {
 
         if #available(iOS 16.0, *) {
             initializeIOS16Types()
+        }
+
+        if #available(iOS 17.0, *) {
+            initializeIOS17Types()
         }
 
         // Concatenate heart events, headache and health data types (both may be empty)
@@ -573,6 +579,23 @@ public class HealthPlugin: NSObject, FlutterPlugin {
 
         dataQuantityTypesDict[HealthConstants.UV_INDEX] = HKQuantityType.quantityType(forIdentifier: .uvExposure)!
         dataQuantityTypesDict[HealthConstants.SLEEP_WRIST_TEMPERATURE] = HKQuantityType.quantityType(forIdentifier: .appleSleepingWristTemperature)!
+
+        // Velo Dash: running workout quantity types (iOS 16+)
+        dataTypesDict[HealthConstants.RUNNING_POWER] = HKQuantityType.quantityType(forIdentifier: .runningPower)!
+        dataTypesDict[HealthConstants.RUNNING_SPEED] = HKQuantityType.quantityType(forIdentifier: .runningSpeed)!
+        dataQuantityTypesDict[HealthConstants.RUNNING_POWER] = HKQuantityType.quantityType(forIdentifier: .runningPower)!
+        dataQuantityTypesDict[HealthConstants.RUNNING_SPEED] = HKQuantityType.quantityType(forIdentifier: .runningSpeed)!
+    }
+
+    /// Velo Dash: initialize iOS 17 specific data types (cycling workout quantity types)
+    @available(iOS 17.0, *)
+    private func initializeIOS17Types() {
+        dataTypesDict[HealthConstants.CYCLING_CADENCE] = HKQuantityType.quantityType(forIdentifier: .cyclingCadence)!
+        dataTypesDict[HealthConstants.CYCLING_POWER] = HKQuantityType.quantityType(forIdentifier: .cyclingPower)!
+        dataTypesDict[HealthConstants.CYCLING_SPEED] = HKQuantityType.quantityType(forIdentifier: .cyclingSpeed)!
+        dataQuantityTypesDict[HealthConstants.CYCLING_CADENCE] = HKQuantityType.quantityType(forIdentifier: .cyclingCadence)!
+        dataQuantityTypesDict[HealthConstants.CYCLING_POWER] = HKQuantityType.quantityType(forIdentifier: .cyclingPower)!
+        dataQuantityTypesDict[HealthConstants.CYCLING_SPEED] = HKQuantityType.quantityType(forIdentifier: .cyclingSpeed)!
     }
 
     /// Initialize workout activity types

@@ -76,6 +76,12 @@ enum HealthDataType {
   DISTANCE_DELTA,
   WALKING_SPEED,
   SPEED,
+  // Velo Dash: cycling / running workout quantity types (iOS 16 / 17+)
+  CYCLING_CADENCE,
+  CYCLING_POWER,
+  CYCLING_SPEED,
+  RUNNING_POWER,
+  RUNNING_SPEED,
   MINDFULNESS,
   WATER,
   SLEEP_ASLEEP,
@@ -210,6 +216,11 @@ const List<HealthDataType> dataTypeKeysIOS = [
   HealthDataType.EXERCISE_TIME,
   HealthDataType.WORKOUT,
   HealthDataType.WORKOUT_ROUTE,
+  HealthDataType.CYCLING_CADENCE,
+  HealthDataType.CYCLING_POWER,
+  HealthDataType.CYCLING_SPEED,
+  HealthDataType.RUNNING_POWER,
+  HealthDataType.RUNNING_SPEED,
   HealthDataType.HEADACHE_NOT_PRESENT,
   HealthDataType.HEADACHE_MILD,
   HealthDataType.HEADACHE_MODERATE,
@@ -348,6 +359,13 @@ const Map<HealthDataType, HealthDataUnit> dataTypeToUnit = {
   HealthDataType.WALKING_SPEED: HealthDataUnit.METER_PER_SECOND,
   HealthDataType.SPEED: HealthDataUnit.METER_PER_SECOND,
 
+  // Velo Dash: cycling / running workout quantity types
+  HealthDataType.CYCLING_CADENCE: HealthDataUnit.REVOLUTIONS_PER_MINUTE,
+  HealthDataType.CYCLING_POWER: HealthDataUnit.WATT,
+  HealthDataType.CYCLING_SPEED: HealthDataUnit.METER_PER_SECOND,
+  HealthDataType.RUNNING_POWER: HealthDataUnit.WATT,
+  HealthDataType.RUNNING_SPEED: HealthDataUnit.METER_PER_SECOND,
+
   HealthDataType.WATER: HealthDataUnit.LITER,
   HealthDataType.SLEEP_ASLEEP: HealthDataUnit.MINUTE,
   HealthDataType.SLEEP_AWAKE: HealthDataUnit.MINUTE,
@@ -450,6 +468,9 @@ enum HealthDataUnit {
   LARGE_CALORIE,
   SMALL_CALORIE,
 
+  // Power units
+  WATT,
+
   // Temperature units
   DEGREE_CELSIUS,
   DEGREE_FAHRENHEIT,
@@ -477,6 +498,7 @@ enum HealthDataUnit {
   // Other units
   BEATS_PER_MINUTE,
   RESPIRATIONS_PER_MINUTE,
+  REVOLUTIONS_PER_MINUTE,
   MILLIGRAM_PER_DECILITER,
   MILLIMOLES_PER_LITER,
   METER_PER_SECOND,

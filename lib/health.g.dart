@@ -30,6 +30,8 @@ HealthDataPoint _$HealthDataPointFromJson(
       : WorkoutSummary.fromJson(json['workoutSummary'] as Map<String, dynamic>),
   metadata: json['metadata'] as Map<String, dynamic>?,
   deviceModel: json['deviceModel'] as String?,
+  productType: json['productType'] as String?,
+  osVersion: json['osVersion'] as String?,
 );
 
 Map<String, dynamic> _$HealthDataPointToJson(HealthDataPoint instance) =>
@@ -48,6 +50,8 @@ Map<String, dynamic> _$HealthDataPointToJson(HealthDataPoint instance) =>
       'workoutSummary': ?instance.workoutSummary?.toJson(),
       'metadata': ?instance.metadata,
       'deviceModel': ?instance.deviceModel,
+      'productType': ?instance.productType,
+      'osVersion': ?instance.osVersion,
     };
 
 const _$HealthDataTypeEnumMap = {
@@ -125,6 +129,11 @@ const _$HealthDataTypeEnumMap = {
   HealthDataType.DISTANCE_DELTA: 'DISTANCE_DELTA',
   HealthDataType.WALKING_SPEED: 'WALKING_SPEED',
   HealthDataType.SPEED: 'SPEED',
+  HealthDataType.CYCLING_CADENCE: 'CYCLING_CADENCE',
+  HealthDataType.CYCLING_POWER: 'CYCLING_POWER',
+  HealthDataType.CYCLING_SPEED: 'CYCLING_SPEED',
+  HealthDataType.RUNNING_POWER: 'RUNNING_POWER',
+  HealthDataType.RUNNING_SPEED: 'RUNNING_SPEED',
   HealthDataType.MINDFULNESS: 'MINDFULNESS',
   HealthDataType.WATER: 'WATER',
   HealthDataType.SLEEP_ASLEEP: 'SLEEP_ASLEEP',
@@ -200,6 +209,7 @@ const _$HealthDataUnitEnumMap = {
   HealthDataUnit.KILOCALORIE: 'KILOCALORIE',
   HealthDataUnit.LARGE_CALORIE: 'LARGE_CALORIE',
   HealthDataUnit.SMALL_CALORIE: 'SMALL_CALORIE',
+  HealthDataUnit.WATT: 'WATT',
   HealthDataUnit.DEGREE_CELSIUS: 'DEGREE_CELSIUS',
   HealthDataUnit.DEGREE_FAHRENHEIT: 'DEGREE_FAHRENHEIT',
   HealthDataUnit.KELVIN: 'KELVIN',
@@ -212,6 +222,7 @@ const _$HealthDataUnitEnumMap = {
   HealthDataUnit.PERCENT: 'PERCENT',
   HealthDataUnit.BEATS_PER_MINUTE: 'BEATS_PER_MINUTE',
   HealthDataUnit.RESPIRATIONS_PER_MINUTE: 'RESPIRATIONS_PER_MINUTE',
+  HealthDataUnit.REVOLUTIONS_PER_MINUTE: 'REVOLUTIONS_PER_MINUTE',
   HealthDataUnit.MILLIGRAM_PER_DECILITER: 'MILLIGRAM_PER_DECILITER',
   HealthDataUnit.MILLIMOLES_PER_LITER: 'MILLIMOLES_PER_LITER',
   HealthDataUnit.METER_PER_SECOND: 'METER_PER_SECOND',

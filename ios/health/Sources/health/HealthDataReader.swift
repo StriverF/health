@@ -250,6 +250,7 @@ class HealthDataReader {
                 }
             } else if let workoutSamples = samples as? [HKWorkout] {
                 let dictionaries = workoutSamples.map { sample -> NSDictionary in
+                    let osVersion = sample.sourceRevision.operatingSystemVersion
                     return [
                         "uuid": "\(sample.uuid)",
                         "workoutActivityType": self.workoutActivityTypeMap.first(where: {
@@ -261,6 +262,9 @@ class HealthDataReader {
                         "totalEnergyBurnedUnit": "KILOCALORIE",
                         "totalDistance": sample.totalDistance?.doubleValue(for: HKUnit.meter()),
                         "totalDistanceUnit": "METER",
+                        // Velo Dash: device model / OS version of the recording source
+                        "productType": sample.sourceRevision.productType ?? "Unknown Device",
+                        "osVersion": "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)",
                         "date_from": Int(sample.startDate.timeIntervalSince1970 * 1000),
                         "date_to": Int(sample.endDate.timeIntervalSince1970 * 1000),
                         "source_id": sample.sourceRevision.source.bundleIdentifier,
@@ -539,6 +543,7 @@ class HealthDataReader {
                 }
             } else if let workoutSamples = samples as? [HKWorkout] {
                 let dictionaries = workoutSamples.map { sample -> NSDictionary in
+                    let osVersion = sample.sourceRevision.operatingSystemVersion
                     return [
                         "uuid": "\(sample.uuid)",
                         "workoutActivityType": self.workoutActivityTypeMap.first(where: {
@@ -550,6 +555,9 @@ class HealthDataReader {
                         "totalEnergyBurnedUnit": "KILOCALORIE",
                         "totalDistance": sample.totalDistance?.doubleValue(for: HKUnit.meter()),
                         "totalDistanceUnit": "METER",
+                        // Velo Dash: device model / OS version of the recording source
+                        "productType": sample.sourceRevision.productType ?? "Unknown Device",
+                        "osVersion": "\(osVersion.majorVersion).\(osVersion.minorVersion).\(osVersion.patchVersion)",
                         "date_from": Int(sample.startDate.timeIntervalSince1970 * 1000),
                         "date_to": Int(sample.endDate.timeIntervalSince1970 * 1000),
                         "source_id": sample.sourceRevision.source.bundleIdentifier,

@@ -1,3 +1,12 @@
+## 13.3.2+velodash.1
+
+Velo Dash fork of `health` 13.3.2 (https://github.com/StriverF/health). Customizations on top of upstream:
+
+* iOS: Add `CYCLING_CADENCE`, `CYCLING_POWER`, `CYCLING_SPEED` (iOS 17+) and `RUNNING_POWER`, `RUNNING_SPEED` (iOS 16+) health data types (READ)
+* Add `WATT` and `REVOLUTIONS_PER_MINUTE` health data units; speeds use the upstream `METER_PER_SECOND` unit
+* iOS: `HealthDataPoint.productType` / `osVersion` of the recording source on `WORKOUT` samples (`HKSourceRevision`)
+* `WORKOUT_ROUTE` now uses the upstream implementation (one `WorkoutRouteHealthValue` with a `locations` list per route) instead of the old per-location data points
+
 ## 13.3.2
 
 * Write data now returns UUID of records - PR [#448](https://github.com/carp-dk/carp-health-flutter/pull/448)

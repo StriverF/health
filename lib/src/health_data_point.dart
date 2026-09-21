@@ -60,6 +60,16 @@ class HealthDataPoint {
   /// On Android: always return null
   String? deviceModel;
 
+  /// Velo Dash: the product type (hardware model, e.g. `Watch7,1`) of the device
+  /// that recorded a [HealthDataType.WORKOUT] sample.
+  /// Only available on iOS, null otherwise.
+  String? productType;
+
+  /// Velo Dash: the operating system version (e.g. `10.3.1`) of the device
+  /// that recorded a [HealthDataType.WORKOUT] sample.
+  /// Only available on iOS, null otherwise.
+  String? osVersion;
+
   HealthDataPoint({
     required this.uuid,
     required this.value,
@@ -75,6 +85,8 @@ class HealthDataPoint {
     this.workoutSummary,
     this.metadata,
     this.deviceModel,
+    this.productType,
+    this.osVersion,
   }) {
     // set the value to minutes rather than the category
     // returned by the native API
@@ -136,6 +148,8 @@ class HealthDataPoint {
     );
     final String? uuid = dataPoint["uuid"] as String?;
     final String? deviceModel = dataPoint["device_model"] as String?;
+    final String? productType = dataPoint["productType"] as String?;
+    final String? osVersion = dataPoint["osVersion"] as String?;
 
     // Set WorkoutSummary, if available.
     WorkoutSummary? workoutSummary;
@@ -163,6 +177,8 @@ class HealthDataPoint {
       workoutSummary: workoutSummary,
       metadata: metadata,
       deviceModel: deviceModel,
+      productType: productType,
+      osVersion: osVersion,
     );
   }
 
@@ -182,7 +198,9 @@ class HealthDataPoint {
     recordingMethod: $recordingMethod
     workoutSummary: $workoutSummary
     metadata: $metadata
-    deviceModel: $deviceModel""";
+    deviceModel: $deviceModel
+    productType: $productType
+    osVersion: $osVersion""";
 
   @override
   bool operator ==(Object other) =>
@@ -199,7 +217,9 @@ class HealthDataPoint {
       sourceName == other.sourceName &&
       recordingMethod == other.recordingMethod &&
       metadata == other.metadata &&
-      deviceModel == other.deviceModel;
+      deviceModel == other.deviceModel &&
+      productType == other.productType &&
+      osVersion == other.osVersion;
 
   @override
   int get hashCode => Object.hash(
@@ -215,5 +235,7 @@ class HealthDataPoint {
     sourceName,
     metadata,
     deviceModel,
+    productType,
+    osVersion,
   );
 }
