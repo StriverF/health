@@ -1,4 +1,4 @@
-library health;
+library;
 
 import 'dart:async';
 import 'dart:collection';
@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 part 'src/heath_data_types.dart';
 part 'src/functions.dart';
 part 'src/health_data_point.dart';
+part 'src/health_changes.dart';
 part 'src/health_value_types.dart';
 part 'src/health_plugin.dart';
 part 'src/workout_summary.dart';

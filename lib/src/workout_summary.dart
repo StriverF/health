@@ -6,7 +6,7 @@ part of '../health.dart';
 ///  * [totalDistance] - The total distance that was traveled during a workout.
 ///  * [totalEnergyBurned] - The amount of energy that was burned during a workout.
 ///  * [totalSteps] - The number of steps during a workout.
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class WorkoutSummary {
   /// Workout type.
   String workoutType;
@@ -28,23 +28,22 @@ class WorkoutSummary {
   });
 
   /// Create a [WorkoutSummary] based on a health data point from native data format.
-  factory WorkoutSummary.fromHealthDataPoint(dynamic dataPoint) =>
-      WorkoutSummary(
-        workoutType: dataPoint['workout_type'] as String? ?? '',
-        totalDistance: dataPoint['total_distance'] as num? ?? 0,
-        totalEnergyBurned: dataPoint['total_energy_burned'] as num? ?? 0,
-        totalSteps: dataPoint['total_steps'] as num? ?? 0,
-      );
+  factory WorkoutSummary.fromHealthDataPoint(dynamic dataPoint) => WorkoutSummary(
+    workoutType: dataPoint['workout_type'] as String? ?? '',
+    totalDistance: dataPoint['total_distance'] as num? ?? 0,
+    totalEnergyBurned: dataPoint['total_energy_burned'] as num? ?? 0,
+    totalSteps: dataPoint['total_steps'] as num? ?? 0,
+  );
 
   /// Create a [HealthDataPoint] from json.
-  factory WorkoutSummary.fromJson(Map<String, dynamic> json) =>
-      _$WorkoutSummaryFromJson(json);
+  factory WorkoutSummary.fromJson(Map<String, dynamic> json) => _$WorkoutSummaryFromJson(json);
 
   /// Convert this [HealthDataPoint] to json.
   Map<String, dynamic> toJson() => _$WorkoutSummaryToJson(this);
 
   @override
-  String toString() => '$runtimeType - '
+  String toString() =>
+      '$runtimeType - '
       'workoutType: $workoutType'
       'totalDistance: $totalDistance, '
       'totalEnergyBurned: $totalEnergyBurned, '

@@ -1,19 +1,26 @@
 name: health
 description: Wrapper for Apple's HealthKit on iOS and Google's Health Connect on Android.
-version: 11.0.0
-homepage: https://github.com/cph-cachet/flutter-plugins/tree/master/packages/health
+version: 13.3.2
+homepage: https://github.com/carp-dk/carp-health-flutter
+issue_tracker: https://github.com/carp-dk/carp-health-flutter/issues
+documentation: https://docs.carp.dk/packages/flutter-health-plugin
+topics:
+  - health
+  - healthkit
+  - healthconnect
+  - health-connect
 
 environment:
-  sdk: ">=3.2.0 <4.0.0"
+  sdk: ">=3.8.0 <4.0.0"
   flutter: ">=3.6.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  intl: '>=0.18.0 <0.20.0'
-  device_info_plus: '>=9.0.0 <11.0.0'
-  json_annotation: ^4.8.0
-  carp_serializable: ^1.1.0 # polymorphic json serialization
+  intl: ^0.20.2
+  device_info_plus: ^13.2.0
+  json_annotation: ^4.12.0
+  carp_serializable: ^3.0.0 # polymorphic json serialization
 
 dev_dependencies:
   flutter_test:
@@ -26,6 +33,8 @@ dev_dependencies:
   #   dart run build_runner build --delete-conflicting-outputs
   build_runner: any
   json_serializable: any
+  mocktail: ^1.0.4
+  mockito: ^5.4.5
 
 flutter:
   plugin:

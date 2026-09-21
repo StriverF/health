@@ -6,7 +6,7 @@ enum HealthPlatformType { appleHealth, googleHealthConnect }
 /// A [HealthDataPoint] object corresponds to a data point capture from
 /// Apple HealthKit or Google Health Connect with a [HealthValue]
 /// as value.
-@JsonSerializable(fieldRename: FieldRename.snake, includeIfNull: false)
+@JsonSerializable(includeIfNull: false, explicitToJson: true)
 class HealthDataPoint {
   /// UUID of the data point.
   String uuid;
@@ -32,7 +32,7 @@ class HealthDataPoint {
   /// The end of the time interval.
   DateTime dateTo;
 
-  /// The health platform that this data point was fetched from.
+  /// The health platform that this data point was fetched.
   HealthPlatformType sourcePlatform;
 
   /// The id of the device from which the data point was fetched.
@@ -44,7 +44,9 @@ class HealthDataPoint {
   /// The name of the source from which the data point was fetched.
   String sourceName;
 
-  /// How the data point was recorded.
+  /// How the data point was recorded
+  /// (on Android: https://developer.android.com/reference/kotlin/androidx/health/connect/client/records/metadata/Metadata#summary)
+  /// on iOS: either user entered or manual https://developer.apple.com/documentation/healthkit/hkmetadatakeywasuserentered)
   RecordingMethod recordingMethod;
 
   /// The summary of the workout data point, if available.
@@ -53,11 +55,10 @@ class HealthDataPoint {
   /// The metadata for this data point.
   Map<String, dynamic>? metadata;
 
-  /// The product type (device model) from which the data was recorded.
-  String productType;
-
-  /// The operating system version of the device from which the data was recorded.
-  String osVersion;
+  /// The source of the data, whether from the iPhone or Watch or something else.
+  /// Only available fo iOS
+  /// On Android: always return null
+  String? deviceModel;
 
   HealthDataPoint({
     required this.uuid,
@@ -70,13 +71,13 @@ class HealthDataPoint {
     required this.sourceDeviceId,
     required this.sourceId,
     required this.sourceName,
-    required this.productType, // 设备型号
-    required this.osVersion, // 系统版本
     this.recordingMethod = RecordingMethod.unknown,
     this.workoutSummary,
     this.metadata,
+    this.deviceModel,
   }) {
-    // 针对某些类型的处理逻辑
+    // set the value to minutes rather than the category
+    // returned by the native API
     if (type == HealthDataType.MINDFULNESS ||
         type == HealthDataType.HEADACHE_UNSPECIFIED ||
         type == HealthDataType.HEADACHE_NOT_PRESENT ||
@@ -107,19 +108,18 @@ class HealthDataPoint {
   Map<String, dynamic> toJson() => _$HealthDataPointToJson(this);
 
   /// Create a [HealthDataPoint] based on a health data point from native data format.
-  factory HealthDataPoint.fromHealthDataPoint(
-    HealthDataType dataType,
-    dynamic dataPoint,
-  ) {
+  factory HealthDataPoint.fromHealthDataPoint(HealthDataType dataType, dynamic dataPoint, String? unitName) {
     // Handling different [HealthValue] types
     HealthValue value = switch (dataType) {
       HealthDataType.AUDIOGRAM => AudiogramHealthValue.fromHealthDataPoint(dataPoint),
       HealthDataType.WORKOUT => WorkoutHealthValue.fromHealthDataPoint(dataPoint),
-      HealthDataType.WORKOUT_ROUTE => WorkoutRouteHealthValue.fromHealthDataPoint(dataPoint['value']),
+      HealthDataType.WORKOUT_ROUTE => WorkoutRouteHealthValue.fromHealthDataPoint(dataPoint),
       HealthDataType.ELECTROCARDIOGRAM => ElectrocardiogramHealthValue.fromHealthDataPoint(dataPoint),
       HealthDataType.NUTRITION => NutritionHealthValue.fromHealthDataPoint(dataPoint),
       HealthDataType.INSULIN_DELIVERY => InsulinDeliveryHealthValue.fromHealthDataPoint(dataPoint),
       HealthDataType.MENSTRUATION_FLOW => MenstruationFlowHealthValue.fromHealthDataPoint(dataPoint),
+      HealthDataType.ACTIVITY_INTENSITY => ActivityIntensityHealthValue.fromHealthDataPoint(dataPoint),
+      HealthDataType.SKIN_TEMPERATURE => SkinTemperatureHealthValue.fromHealthDataPoint(dataPoint),
       _ => NumericHealthValue.fromHealthDataPoint(dataPoint),
     };
 
@@ -127,9 +127,15 @@ class HealthDataPoint {
     final DateTime to = DateTime.fromMillisecondsSinceEpoch(dataPoint['date_to'] as int);
     final String sourceId = dataPoint["source_id"] as String;
     final String sourceName = dataPoint["source_name"] as String;
-    final Map<String, dynamic>? metadata = dataPoint["metadata"] == null ? null : Map<String, dynamic>.from(dataPoint['metadata'] as Map);
-    final unit = dataTypeToUnit[dataType] ?? HealthDataUnit.UNKNOWN_UNIT;
+    final Map<String, dynamic>? metadata = dataPoint["metadata"] == null
+        ? null
+        : Map<String, dynamic>.from(dataPoint['metadata'] as Map);
+    final HealthDataUnit unit = HealthDataUnit.values.firstWhere(
+      (value) => value.name == unitName,
+      orElse: () => dataTypeToUnit[dataType] ?? HealthDataUnit.UNKNOWN_UNIT,
+    );
     final String? uuid = dataPoint["uuid"] as String?;
+    final String? deviceModel = dataPoint["device_model"] as String?;
 
     // Set WorkoutSummary, if available.
     WorkoutSummary? workoutSummary;
@@ -142,10 +148,6 @@ class HealthDataPoint {
 
     var recordingMethod = dataPoint["recording_method"] as int?;
 
-    // 从 dataPoint 中获取 productType 和 osVersion
-    final String productType = dataPoint["productType"] as String? ?? "Unknown Device";
-    final String osVersion = dataPoint["osVersion"] as String? ?? "Unknown OS";
-
     return HealthDataPoint(
       uuid: uuid ?? "",
       value: value,
@@ -157,16 +159,16 @@ class HealthDataPoint {
       sourceDeviceId: Health().deviceId,
       sourceId: sourceId,
       sourceName: sourceName,
-      productType: productType, // 解析设备型号
-      osVersion: osVersion, // 解析系统版本
       recordingMethod: RecordingMethod.fromInt(recordingMethod),
       workoutSummary: workoutSummary,
       metadata: metadata,
+      deviceModel: deviceModel,
     );
   }
 
   @override
-  String toString() => """$runtimeType -
+  String toString() =>
+      """$runtimeType -
     uuid: $uuid,
     value: ${value.toString()},
     unit: ${unit.name},
@@ -177,11 +179,10 @@ class HealthDataPoint {
     deviceId: $sourceDeviceId,
     sourceId: $sourceId,
     sourceName: $sourceName
-    productType: $productType,
-    osVersion: $osVersion,
     recordingMethod: $recordingMethod
     workoutSummary: $workoutSummary
-    metadata: $metadata""";
+    metadata: $metadata
+    deviceModel: $deviceModel""";
 
   @override
   bool operator ==(Object other) =>
@@ -196,12 +197,23 @@ class HealthDataPoint {
       sourceDeviceId == other.sourceDeviceId &&
       sourceId == other.sourceId &&
       sourceName == other.sourceName &&
-      productType == other.productType &&
-      osVersion == other.osVersion &&
       recordingMethod == other.recordingMethod &&
-      metadata == other.metadata;
+      metadata == other.metadata &&
+      deviceModel == other.deviceModel;
 
   @override
-  int get hashCode =>
-      Object.hash(uuid, value, unit, dateFrom, dateTo, type, sourcePlatform, sourceDeviceId, sourceId, sourceName, productType, osVersion, metadata);
+  int get hashCode => Object.hash(
+    uuid,
+    value,
+    unit,
+    dateFrom,
+    dateTo,
+    type,
+    sourcePlatform,
+    sourceDeviceId,
+    sourceId,
+    sourceName,
+    metadata,
+    deviceModel,
+  );
 }
