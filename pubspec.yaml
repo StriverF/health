@@ -18,7 +18,7 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ^0.20.2
-  device_info_plus: ^13.2.0
+  device_info_plus: ">=12.1.0 <14.0.0" # Velo Dash: 12.x keeps win32 ^5 compatible with file_picker 11
   json_annotation: ^4.12.0
   carp_serializable: ^3.0.0 # polymorphic json serialization
 
