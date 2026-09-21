@@ -240,7 +240,10 @@ public class HealthPlugin: NSObject, FlutterPlugin {
         unitDict[HealthConstants.KILOCALORIE] = HKUnit.kilocalorie()
         unitDict[HealthConstants.LARGE_CALORIE] = HKUnit.largeCalorie()
         unitDict[HealthConstants.SMALL_CALORIE] = HKUnit.smallCalorie()
-        unitDict[HealthConstants.WATT] = HKUnit.watt()
+        // Velo Dash: HKUnit.watt() is iOS 16+, same as the power quantity types that use it
+        if #available(iOS 16.0, *) {
+            unitDict[HealthConstants.WATT] = HKUnit.watt()
+        }
         unitDict[HealthConstants.DEGREE_CELSIUS] = HKUnit.degreeCelsius()
         unitDict[HealthConstants.DEGREE_FAHRENHEIT] = HKUnit.degreeFahrenheit()
         unitDict[HealthConstants.KELVIN] = HKUnit.kelvin()
